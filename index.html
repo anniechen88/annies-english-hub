@@ -289,6 +289,22 @@
         /* Animation for page switching */
         .tab-content { animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ======================================================================
+           V2.1 TODAY DASHBOARD
+           ====================================================================== */
+        .today-hero { background: linear-gradient(135deg,#fffaf4 0%,#fff3ef 48%,#f7f3ec 100%); }
+        .today-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+        .today-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(139,115,85,.14); }
+        .today-card.done { border-color:#9bc9a6 !important; background:#f2faf1; }
+        .mission-icon { width:48px; height:48px; border-radius:18px; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; }
+        .today-progress-track { height:12px; background:#eee4d7; border-radius:999px; overflow:hidden; }
+        .today-progress-fill { height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#f08a80,#e9aa9b,#7dbf8c); transition:width .35s ease; }
+        .streak-flame { filter: drop-shadow(0 3px 4px rgba(224,112,96,.2)); }
+        @media (max-width:640px) {
+          .today-hero h1 { font-size:2rem; }
+          .mission-icon { width:42px; height:42px; border-radius:15px; }
+        }
     </style>
 </head>
 <body class="relative">
@@ -311,7 +327,8 @@
             <span class="text-2xl animate-spin-slow">🎀</span>
             <span class="font-black tracking-wide text-lg">Annie's Hub</span>
         </div>
-        <button onclick="switchMainTab('habits')" id="global-tab-habits" class="nav-btn px-4 py-2 rounded-2xl font-bold text-[#945f47] bg-white border-2 border-[#e6d6c0] shadow-sm transition-all hover:-translate-y-1">🌱 習慣養成</button>
+        <button onclick="switchMainTab('today')" id="global-tab-today" class="nav-btn px-4 py-2 rounded-2xl font-bold text-[#945f47] bg-white border-2 border-[#e6d6c0] shadow-sm transition-all hover:-translate-y-1">✨ 今日學習</button>
+        <button onclick="switchMainTab('habits')" id="global-tab-habits" class="nav-btn px-4 py-2 rounded-2xl font-bold text-stone-500 bg-[#fdf9f2] border-2 border-transparent hover:bg-white transition-all hover:-translate-y-1">🌱 習慣養成</button>
         <button onclick="switchMainTab('meditation')" id="global-tab-meditation" class="nav-btn px-4 py-2 rounded-2xl font-bold text-stone-500 bg-[#fdf9f2] border-2 border-transparent hover:bg-white transition-all hover:-translate-y-1">✿ 靜心練習</button>
         <button onclick="switchMainTab('reader')" id="global-tab-reader" class="nav-btn px-4 py-2 rounded-2xl font-bold text-stone-500 bg-[#fdf9f2] border-2 border-transparent hover:bg-white transition-all hover:-translate-y-1">📖 智慧閱讀</button>
     </nav>
@@ -319,6 +336,91 @@
     <!-- Main Container with top padding to clear the fixed nav -->
     <div id="main-container" class="pt-[80px] pb-16">
         
+        <!-- ======================================================================
+             V2.1: TODAY DASHBOARD
+             ====================================================================== -->
+        <div id="app-today" class="tab-content block">
+            <section class="max-w-6xl mx-auto px-4 pt-6 md:pt-10">
+                <div class="today-hero felt-card p-6 md:p-10 mb-7">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-7">
+                        <div>
+                            <div class="inline-flex items-center gap-2 bg-white/80 border-2 border-dashed border-[#e7d8c4] rounded-full px-4 py-2 text-sm font-bold text-[#8b6049] mb-4">
+                                <span>🎀</span><span>ANNIE ENGLISH HUB V2.1</span>
+                            </div>
+                            <p id="today-date" class="text-sm font-bold text-[#a88060] mb-2"></p>
+                            <h1 class="text-3xl md:text-5xl font-black text-[#7a4b36] leading-tight">今天，只花 10 分鐘。</h1>
+                            <p class="text-base md:text-lg text-stone-600 mt-3 max-w-2xl leading-relaxed">讓英文學習變成每天都做得到的小習慣。完成下面 5 個任務，就是今天的進步。</p>
+                        </div>
+                        <div class="bg-white/85 border-2 border-[#ead8c5] rounded-3xl p-5 min-w-[220px] shadow-sm">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-[#7a5840]">今日完成度</span><span id="today-percent" class="font-black text-[#ce685e]">0%</span>
+                            </div>
+                            <div class="today-progress-track"><div id="today-progress-fill" class="today-progress-fill"></div></div>
+                            <p id="today-progress-text" class="text-xs text-stone-500 font-bold mt-3">0 / 5 任務完成</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-7">
+                    <div class="felt-card p-4 md:p-5 bg-white">
+                        <div class="text-xs font-bold text-stone-500 mb-1">🔥 連續學習</div>
+                        <div class="flex items-end gap-2"><span id="today-streak" class="text-3xl font-black text-[#ce685e]">0</span><span class="text-sm font-bold text-stone-500 mb-1">天</span></div>
+                    </div>
+                    <div class="felt-card p-4 md:p-5 bg-white">
+                        <div class="text-xs font-bold text-stone-500 mb-1">🌱 21 天旅程</div>
+                        <div class="flex items-end gap-2"><span id="today-journey" class="text-3xl font-black text-[#5a9e6e]">0</span><span class="text-sm font-bold text-stone-500 mb-1">/ 21</span></div>
+                    </div>
+                    <div class="felt-card p-4 md:p-5 bg-white">
+                        <div class="text-xs font-bold text-stone-500 mb-1">📚 已完成任務</div>
+                        <div class="flex items-end gap-2"><span id="today-total" class="text-3xl font-black text-[#5080a0]">0</span><span class="text-sm font-bold text-stone-500 mb-1">次</span></div>
+                    </div>
+                    <div class="felt-card p-4 md:p-5 bg-white">
+                        <div class="text-xs font-bold text-stone-500 mb-1">💡 今日狀態</div>
+                        <div id="today-status" class="text-lg font-black text-[#825e43] mt-1">準備開始</div>
+                    </div>
+                </div>
+
+                <div class="felt-card p-5 md:p-8 mb-7">
+                    <div class="flex items-center justify-between gap-3 mb-5">
+                        <div><h2 class="text-2xl md:text-3xl font-black text-[#7a4b36]">Today's Mission</h2><p class="text-sm text-stone-500 font-bold mt-1">你的 10 分鐘英文任務</p></div>
+                        <span class="bg-[#fae1dc] text-[#ce685e] border border-[#f4c8ce] rounded-full px-3 py-1 text-xs font-black">5 STEPS</span>
+                    </div>
+                    <div class="grid gap-3">
+                        <button onclick="completeTodayMission('listen','meditation')" id="mission-listen" class="today-card w-full text-left bg-white border-2 border-[#e7d8c4] rounded-3xl p-4 flex items-center gap-4">
+                            <span class="mission-icon bg-[#e1ecf5]">🎧</span><span class="flex-1"><b class="block text-lg text-[#5080a0]">Listen · 2 min</b><small class="text-stone-500 font-bold">聽一句英文，讓耳朵先熟悉英文</small></span><span class="mission-check text-xl">○</span>
+                        </button>
+                        <button onclick="completeTodayMission('speak','meditation')" id="mission-speak" class="today-card w-full text-left bg-white border-2 border-[#e7d8c4] rounded-3xl p-4 flex items-center gap-4">
+                            <span class="mission-icon bg-[#fae1dc]">🗣️</span><span class="flex-1"><b class="block text-lg text-[#ce685e]">Speak · 2 min</b><small class="text-stone-500 font-bold">跟讀、朗讀，讓嘴巴開始說英文</small></span><span class="mission-check text-xl">○</span>
+                        </button>
+                        <button onclick="completeTodayMission('read','reader')" id="mission-read" class="today-card w-full text-left bg-white border-2 border-[#e1eedc] rounded-3xl p-4 flex items-center gap-4">
+                            <span class="mission-icon bg-[#e1eedc]">📖</span><span class="flex-1"><b class="block text-lg text-[#5a9e6e]">Read · 3 min</b><small class="text-stone-500 font-bold">閱讀一小段英文，累積理解力</small></span><span class="mission-check text-xl">○</span>
+                        </button>
+                        <button onclick="completeTodayMission('affirm','meditation')" id="mission-affirm" class="today-card w-full text-left bg-white border-2 border-[#e9dcbf] rounded-3xl p-4 flex items-center gap-4">
+                            <span class="mission-icon bg-[#fcf5e5]">💰</span><span class="flex-1"><b class="block text-lg text-[#b08a32]">Affirm · 1 min</b><small class="text-stone-500 font-bold">用一句正向英文建立自信</small></span><span class="mission-check text-xl">○</span>
+                        </button>
+                        <button onclick="completeTodayMission('calm','meditation')" id="mission-calm" class="today-card w-full text-left bg-white border-2 border-[#f4c8ce] rounded-3xl p-4 flex items-center gap-4">
+                            <span class="mission-icon bg-[#f7e8ef]">🧘</span><span class="flex-1"><b class="block text-lg text-[#8b3a56]">Calm · 2 min</b><small class="text-stone-500 font-bold">呼吸、放鬆，讓今天的學習停留在心裡</small></span><span class="mission-check text-xl">○</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-7">
+                    <div class="felt-card p-6 bg-[#fffaf2]">
+                        <div class="flex items-center gap-3 mb-4"><span class="text-3xl">✨</span><div><h3 class="text-xl font-black text-[#7a4b36]">Daily English</h3><p class="text-xs text-stone-500 font-bold">今天的一句英文</p></div></div>
+                        <p class="text-xl font-bold text-[#5e412f] leading-relaxed">“Small steps every day can change my life.”</p>
+                        <p class="text-sm text-[#825e43] mt-3 border-l-4 border-[#f08a80] pl-3">每天一小步，也能改變我的人生。</p>
+                        <button onclick="speakTodaySentence()" class="woolen-btn px-5 py-2.5 mt-5 font-bold">🔊 聽一句</button>
+                    </div>
+                    <div class="felt-card p-6 bg-[#f5f8f3]">
+                        <div class="flex items-center gap-3 mb-4"><span class="text-3xl">🎯</span><div><h3 class="text-xl font-black text-[#5a7f61]">21-Day Journey</h3><p class="text-xs text-stone-500 font-bold">每天完成，就是在累積身份</p></div></div>
+                        <div class="today-progress-track mb-3"><div id="journey-progress-fill" class="today-progress-fill"></div></div>
+                        <p id="journey-progress-label" class="text-sm font-bold text-stone-600">已完成 0 / 21 天</p>
+                        <button onclick="switchMainTab('habits'); setTimeout(()=>setHabitTab('stamp'),50)" class="mt-4 bg-white border-2 border-[#c9e1c4] text-[#5a9e6e] rounded-2xl px-5 py-2.5 font-bold hover:-translate-y-0.5 transition">查看 21 天打卡 →</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
         <!-- ==========================================================================
              APP 1: HABITS TRACKER
              ========================================================================== -->
@@ -2942,16 +3044,120 @@
             showToastReader("已清空音標工具", "info");
         }
 
+        // ======================================================================
+        // V2.1 TODAY DASHBOARD LOGIC
+        // ======================================================================
+        const TODAY_MISSIONS = ['listen','speak','read','affirm','calm'];
+        const TODAY_STORAGE = 'annieEnglishHubTodayV21';
+
+        function localDateKey(d = new Date()) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth()+1).padStart(2,'0');
+            const day = String(d.getDate()).padStart(2,'0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function loadTodayState() {
+            const today = localDateKey();
+            let state = JSON.parse(localStorage.getItem(TODAY_STORAGE) || '{}');
+            if (state.date !== today) state = { date: today, completed: [] };
+            state.completed = Array.isArray(state.completed) ? state.completed : [];
+            return state;
+        }
+
+        function saveTodayState(state) {
+            localStorage.setItem(TODAY_STORAGE, JSON.stringify(state));
+        }
+
+        function getCompletedDays() {
+            const history = JSON.parse(localStorage.getItem('annieEnglishHubMissionHistoryV21') || '{}');
+            return history;
+        }
+
+        function recordTodayIfComplete(state) {
+            const history = getCompletedDays();
+            if (state.completed.length === TODAY_MISSIONS.length) history[state.date] = true;
+            else delete history[state.date];
+            localStorage.setItem('annieEnglishHubMissionHistoryV21', JSON.stringify(history));
+        }
+
+        function calculateStreak() {
+            const history = getCompletedDays();
+            let d = new Date();
+            let streak = 0;
+            while (history[localDateKey(d)]) {
+                streak++;
+                d.setDate(d.getDate()-1);
+            }
+            return streak;
+        }
+
+        function completeTodayMission(id, destination) {
+            const state = loadTodayState();
+            const idx = state.completed.indexOf(id);
+            if (idx >= 0) state.completed.splice(idx,1);
+            else state.completed.push(id);
+            saveTodayState(state);
+            recordTodayIfComplete(state);
+            updateTodayDashboard();
+            if (state.completed.includes(id) && destination) {
+                setTimeout(() => switchMainTab(destination), 160);
+            }
+        }
+
+        function updateTodayDashboard() {
+            const state = loadTodayState();
+            const count = state.completed.length;
+            const pct = Math.round(count / TODAY_MISSIONS.length * 100);
+            const history = getCompletedDays();
+            const completedDays = Object.keys(history).filter(k => history[k]).length;
+            const stampCount = Array.isArray(stampState) ? stampState.filter(Boolean).length : 0;
+            const journey = Math.max(completedDays, stampCount);
+
+            const dateEl = document.getElementById('today-date');
+            if (dateEl) dateEl.textContent = new Intl.DateTimeFormat('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'}).format(new Date());
+            const percentEl = document.getElementById('today-percent'); if(percentEl) percentEl.textContent = pct + '%';
+            const fillEl = document.getElementById('today-progress-fill'); if(fillEl) fillEl.style.width = pct + '%';
+            const textEl = document.getElementById('today-progress-text'); if(textEl) textEl.textContent = `${count} / ${TODAY_MISSIONS.length} 任務完成`;
+            const streakEl = document.getElementById('today-streak'); if(streakEl) streakEl.textContent = calculateStreak();
+            const journeyEl = document.getElementById('today-journey'); if(journeyEl) journeyEl.textContent = Math.min(journey,21);
+            const totalEl = document.getElementById('today-total'); if(totalEl) totalEl.textContent = Object.values(history).filter(Boolean).length * 5 + count;
+            const statusEl = document.getElementById('today-status');
+            if(statusEl) statusEl.textContent = count === 0 ? '準備開始' : count < 5 ? '正在累積 ✨' : '今日完成！🎉';
+            const jFill = document.getElementById('journey-progress-fill'); if(jFill) jFill.style.width = Math.min(journey,21)/21*100 + '%';
+            const jLabel = document.getElementById('journey-progress-label'); if(jLabel) jLabel.textContent = `已完成 ${Math.min(journey,21)} / 21 天`;
+
+            TODAY_MISSIONS.forEach(id => {
+                const card = document.getElementById(`mission-${id}`);
+                if(!card) return;
+                const done = state.completed.includes(id);
+                card.classList.toggle('done', done);
+                const check = card.querySelector('.mission-check');
+                if(check) check.textContent = done ? '✓' : '○';
+            });
+        }
+
+        function speakTodaySentence() {
+            const text = 'Small steps every day can change my life.';
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'en-US'; u.rate = 0.88;
+            window.speechSynthesis.speak(u);
+        }
+
         // ==========================================================================
         // GLOBAL INITIALIZATION
         // ==========================================================================
         window.addEventListener('DOMContentLoaded', () => {
             // Setup Global Tabs
-            switchMainTab('habits');
+            switchMainTab('today');
+            updateTodayDashboard();
 
             // Init Habits
             renderStampGrid();
             updateHabitPreview();
+            updateTodayDashboard();
             
             // Init Meditation
             loadTrackerDataMed();
