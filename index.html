@@ -132,6 +132,76 @@
             border-bottom-width: 2px;
             margin-top: 4px;
         }
+
+        /* ==========================================================================
+           FLOATING CRYSTAL BACK-TO-TOP BUTTON
+           ========================================================================== */
+        .crystal-top-btn {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 180;
+            width: 58px;
+            height: 58px;
+            border-radius: 20px;
+            border: 2px solid rgba(255,255,255,.78);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(circle at 30% 22%, rgba(255,255,255,.72) 0 6%, transparent 7%),
+                linear-gradient(145deg, #b78cff 0%, #7b4fc2 38%, #5b348f 72%, #d5ad4d 100%);
+            box-shadow:
+                0 8px 20px rgba(91,52,143,.28),
+                inset 0 2px 5px rgba(255,255,255,.65),
+                inset 0 -7px 10px rgba(54,31,91,.28),
+                0 0 0 3px rgba(213,173,77,.22);
+            opacity: 0;
+            transform: translateY(18px) scale(.88);
+            pointer-events: none;
+            transition: opacity .28s ease, transform .28s ease, box-shadow .2s ease;
+            overflow: hidden;
+        }
+        .crystal-top-btn::before {
+            content: "";
+            position: absolute;
+            inset: 5px;
+            border-radius: 15px;
+            background:
+                linear-gradient(125deg, transparent 20%, rgba(255,255,255,.28) 35%, transparent 48%),
+                repeating-linear-gradient(135deg, rgba(255,255,255,.07) 0 2px, transparent 2px 7px);
+            mix-blend-mode: screen;
+            pointer-events: none;
+        }
+        .crystal-top-btn::after {
+            content: "";
+            position: absolute;
+            width: 22px;
+            height: 9px;
+            top: 7px;
+            left: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.28);
+            filter: blur(2px);
+            transform: rotate(-18deg);
+            pointer-events: none;
+        }
+        .crystal-top-btn.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+        .crystal-top-btn:hover {
+            transform: translateY(-3px) scale(1.04);
+            box-shadow:
+                0 12px 26px rgba(91,52,143,.34),
+                inset 0 2px 6px rgba(255,255,255,.72),
+                inset 0 -7px 10px rgba(54,31,91,.25),
+                0 0 0 4px rgba(213,173,77,.28);
+        }
+        .crystal-top-btn:active { transform: translateY(1px) scale(.97); }
+        .crystal-top-btn svg { position: relative; z-index: 2; filter: drop-shadow(0 2px 2px rgba(51,27,79,.35)); }
+        @media (max-width: 640px) {
+            .crystal-top-btn { right: 14px; bottom: 14px; width: 52px; height: 52px; border-radius: 18px; }
+        }
         .wool-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 9999; opacity: 0.12; mix-blend-mode: overlay;
@@ -407,9 +477,12 @@
                 <div class="grid md:grid-cols-2 gap-7">
                     <div class="felt-card p-6 bg-[#fffaf2]">
                         <div class="flex items-center gap-3 mb-4"><span class="text-3xl">✨</span><div><h3 class="text-xl font-black text-[#7a4b36]">Daily English</h3><p class="text-xs text-stone-500 font-bold">今天的一句英文</p></div></div>
-                        <p class="text-xl font-bold text-[#5e412f] leading-relaxed">“Small steps every day can change my life.”</p>
-                        <p class="text-sm text-[#825e43] mt-3 border-l-4 border-[#f08a80] pl-3">每天一小步，也能改變我的人生。</p>
-                        <button onclick="speakTodaySentence()" class="woolen-btn px-5 py-2.5 mt-5 font-bold">🔊 聽一句</button>
+                        <p id="today-english-sentence" class="text-xl font-bold text-[#5e412f] leading-relaxed">“Small steps every day can change my life.”</p>
+                        <p id="today-english-translation" class="text-sm text-[#825e43] mt-3 border-l-4 border-[#f08a80] pl-3">每天一小步，也能改變我的人生。</p>
+                        <div class="flex flex-wrap gap-2 mt-5">
+                            <button onclick="speakTodaySentence()" class="woolen-btn px-5 py-2.5 font-bold">🔊 聽一句</button>
+                            <button onclick="changeTodaySentence()" class="px-5 py-2.5 font-bold rounded-[22px] bg-gradient-to-r from-[#f3e8ff] to-[#fff7df] text-[#6d458e] border-2 border-[#d8c0ec] shadow-[0_4px_8px_rgba(109,69,142,.12)] hover:-translate-y-0.5 transition-all">✨ 換一句</button>
+                        </div>
                     </div>
                     <div class="felt-card p-6 bg-[#f5f8f3]">
                         <div class="flex items-center gap-3 mb-4"><span class="text-3xl">🎯</span><div><h3 class="text-xl font-black text-[#5a7f61]">21-Day Journey</h3><p class="text-xs text-stone-500 font-bold">每天完成，就是在累積身份</p></div></div>
@@ -1369,6 +1442,7 @@
                                     </h2>
                                     <div class="flex items-center gap-2">
                                         <button id="read-full-article-btn" onclick="readFullArticle()" class="hidden text-xs bg-[#fdf2f0] text-[#bc675b] hover:bg-[#e28f83] hover:text-white transition duration-200 py-1 px-2.5 rounded-lg font-bold border border-[#f5dbd7] clear-text" title="朗讀整篇短文">🔊 朗讀全文</button>
+                                        <button id="pause-full-article-btn" onclick="toggleFullArticlePause()" class="hidden text-xs bg-[#fff8e6] text-[#a16207] hover:bg-[#facc15] hover:text-white transition duration-200 py-1 px-2.5 rounded-lg font-bold border border-[#fde68a] clear-text" title="暫停朗讀">⏸ 暫停</button>
                                         <span class="text-[10px] font-bold text-[#bc675b] bg-[#fbf8f2] py-0.5 px-2 rounded-full border border-[#eee5d5] clear-text">💡 點擊查字 | 反白翻譯</span>
                                     </div>
                                 </div>
@@ -1523,6 +1597,24 @@
         </div>
 
     </div>
+
+    <!-- Floating crystal back-to-top button -->
+    <button id="crystal-top-btn" class="crystal-top-btn" type="button" aria-label="回到最頂端" title="回到最頂端">
+        <svg width="30" height="30" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+            <path d="M20 4L30 14L25.5 30L20 36L14.5 30L10 14L20 4Z" fill="url(#crystalGold)" stroke="rgba(255,255,255,.9)" stroke-width="1.5"/>
+            <path d="M10 14H30L20 20L10 14Z" fill="rgba(255,255,255,.28)"/>
+            <path d="M20 4V36M10 14L20 20L30 14" stroke="rgba(255,255,255,.68)" stroke-width="1.1"/>
+            <path d="M16 11L20 7L24 11L20 15L16 11Z" fill="rgba(255,255,255,.45)"/>
+            <defs>
+                <linearGradient id="crystalGold" x1="9" y1="5" x2="31" y2="35" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#f8e7a8"/>
+                    <stop offset=".3" stop-color="#d5ad4d"/>
+                    <stop offset=".58" stop-color="#a879d1"/>
+                    <stop offset="1" stop-color="#7650b0"/>
+                </linearGradient>
+            </defs>
+        </svg>
+    </button>
 
     <!-- ==========================================================================
          JAVASCRIPT LOGIC (Unified)
@@ -2471,17 +2563,55 @@
         }
 
         function speakText(text) {
-            if (!('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-            if (!text || text.trim() === '') return;
-            const utterance = new SpeechSynthesisUtterance(text);
-            const slider = document.getElementById('speech-rate-reader');
-            if (slider) utterance.rate = parseFloat(slider.value);
-            const sel = document.getElementById('voice-select-reader');
-            if (sel && sel.value !== "default" && synthVoicesReader.length > 0) {
-                utterance.voice = synthVoicesReader[parseInt(sel.value)];
+            if (!('speechSynthesis' in window)) {
+                showToastReader && showToastReader('目前瀏覽器不支援英文朗讀。', 'warning');
+                return;
             }
-            window.speechSynthesis.speak(utterance);
+            const cleanText = String(text || '').trim();
+            if (!cleanText) return;
+
+            const synth = window.speechSynthesis;
+            synth.cancel();
+            synth.resume();
+
+            const doSpeak = () => {
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'en-US';
+                const slider = document.getElementById('speech-rate-reader');
+                if (slider) {
+                    const rate = parseFloat(slider.value);
+                    utterance.rate = Number.isFinite(rate) ? rate : 1;
+                }
+                const sel = document.getElementById('voice-select-reader');
+                const idx = sel ? parseInt(sel.value, 10) : -1;
+                if (idx >= 0 && synthVoicesReader[idx]) {
+                    utterance.voice = synthVoicesReader[idx];
+                } else {
+                    const preferred = synthVoicesReader.find(v => /^en-US$/i.test(v.lang))
+                        || synthVoicesReader.find(v => /^en/i.test(v.lang));
+                    if (preferred) utterance.voice = preferred;
+                }
+                utterance.onerror = () => {
+                    try { synth.cancel(); } catch (_) {}
+                };
+                synth.speak(utterance);
+            };
+
+            if (synth.getVoices().length === 0) {
+                try { synth.addEventListener('voiceschanged', function once() {
+                    synth.removeEventListener('voiceschanged', once);
+                    synthVoicesReader = synth.getVoices() || synthVoicesReader;
+                    doSpeak();
+                }, { once: true }); } catch (_) {}
+                setTimeout(() => {
+                    if (!synth.speaking) {
+                        synthVoicesReader = synth.getVoices() || synthVoicesReader;
+                        doSpeak();
+                    }
+                }, 350);
+            } else {
+                doSpeak();
+            }
         }
 
         let articleReadingState = 'stopped';
@@ -2489,6 +2619,8 @@
 
         function updateParseButtonUI(state) {
             articleReadingState = state;
+            const pauseFullBtn = document.getElementById('pause-full-article-btn');
+            if (pauseFullBtn) updateFullArticlePauseButton();
             const parseBtn = document.getElementById('parse-btn');
             if (!parseBtn) return;
             
@@ -2525,7 +2657,9 @@
             document.getElementById('article-input').value = '';
             document.getElementById('interactive-text').innerHTML = '<div class="flex flex-col items-center justify-center h-48 text-center text-stone-400"><span class="text-3xl mb-2">📖</span><p class="text-xs font-semibold clear-text">請於左側輸入英文短文，並點擊「開始分析閱讀」</p></div>';
             const readFullBtn = document.getElementById('read-full-article-btn');
+            const pauseFullBtn = document.getElementById('pause-full-article-btn');
             if (readFullBtn) readFullBtn.classList.add('hidden');
+            if (pauseFullBtn) pauseFullBtn.classList.add('hidden');
             window.speechSynthesis.cancel();
             updateParseButtonUI('stopped');
             lastParsedText = "";
@@ -2537,10 +2671,12 @@
             const text = document.getElementById('article-input').value.trim();
             const container = document.getElementById('interactive-text');
             const readFullBtn = document.getElementById('read-full-article-btn');
+            const pauseFullBtn = document.getElementById('pause-full-article-btn');
 
             if (!text) {
                 container.innerHTML = '<div class="flex flex-col items-center justify-center h-48 text-center text-stone-400"><p class="text-xs font-semibold clear-text">文章內容為空，請輸入英文短文並解析！</p></div>';
                 if (readFullBtn) readFullBtn.classList.add('hidden');
+                if (pauseFullBtn) pauseFullBtn.classList.add('hidden');
                 updateParseButtonUI('stopped');
                 lastParsedText = "";
                 return;
@@ -2570,7 +2706,8 @@
                 tokens.forEach(token => {
                     if (/^[a-zA-Z'-]+$/.test(token)) {
                         const cleanWord = token.replace(/^[^a-zA-Z]+|[^a-zA-Z]+$/g, '');
-                        resultHtml += `<span class="word-clickable px-0.5 rounded cursor-pointer border-b border-dashed border-[#e28f83]/50 hover:bg-[#fcece9] transition-colors duration-150" data-word="${cleanWord}" onclick="handleWordClickReader(this, '${cleanWord}')">${token}</span>`;
+                        const safeWord = cleanWord.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                        resultHtml += `<span class="word-clickable px-0.5 rounded cursor-pointer border-b border-dashed border-[#e28f83]/50 hover:bg-[#fcece9] transition-colors duration-150" data-word="${safeWord}">${token}</span>`;
                     } else {
                         resultHtml += token;
                     }
@@ -2578,7 +2715,13 @@
                 resultHtml += '</p>';
             });
             container.innerHTML = resultHtml;
+            // 使用事件委派/資料屬性綁定，避免 don't、I'm、it's 等含撇號單字造成 inline onclick 失效。
+            container.querySelectorAll('.word-clickable').forEach(el => {
+                el.addEventListener('click', () => handleWordClickReader(el, el.dataset.word || el.textContent));
+            });
             if (readFullBtn) readFullBtn.classList.remove('hidden');
+            if (pauseFullBtn) pauseFullBtn.classList.remove('hidden');
+            updateFullArticlePauseButton();
 
             if (!autoLoad) {
                 window.speechSynthesis.cancel();
@@ -2593,8 +2736,8 @@
                 }
 
                 // 綁定事件：當語音自然結束或被中斷時，自動復原按鈕為「開始解析閱讀」
-                utterance.onend = function() { updateParseButtonUI('stopped'); };
-                utterance.onerror = function() { updateParseButtonUI('stopped'); };
+                utterance.onend = function() { updateParseButtonUI('stopped'); updateFullArticlePauseButton(); };
+                utterance.onerror = function() { updateParseButtonUI('stopped'); updateFullArticlePauseButton(); };
 
                 window.speechSynthesis.speak(utterance);
                 updateParseButtonUI('playing');
@@ -2604,107 +2747,320 @@
             }
         }
 
+        function updateFullArticlePauseButton() {
+            const btn = document.getElementById('pause-full-article-btn');
+            if (!btn) return;
+            if (articleReadingState === 'paused') {
+                btn.innerHTML = '▶ 繼續';
+                btn.title = '繼續朗讀';
+                btn.classList.remove('bg-[#fff8e6]', 'text-[#a16207]');
+                btn.classList.add('bg-[#ecfdf5]', 'text-[#047857]');
+            } else {
+                btn.innerHTML = '⏸ 暫停';
+                btn.title = '暫停朗讀';
+                btn.classList.remove('bg-[#ecfdf5]', 'text-[#047857]');
+                btn.classList.add('bg-[#fff8e6]', 'text-[#a16207]');
+            }
+        }
+
+        function toggleFullArticlePause() {
+            if (!('speechSynthesis' in window)) {
+                showToastReader('目前瀏覽器不支援朗讀功能。', 'warning');
+                return;
+            }
+            const synth = window.speechSynthesis;
+            if (articleReadingState === 'playing' || synth.speaking) {
+                synth.pause();
+                updateParseButtonUI('paused');
+                updateFullArticlePauseButton();
+                showToastReader('已暫停朗讀', 'info');
+            } else if (articleReadingState === 'paused') {
+                synth.resume();
+                updateParseButtonUI('playing');
+                updateFullArticlePauseButton();
+                showToastReader('繼續朗讀...', 'info');
+            }
+        }
+
         function readFullArticle() { 
             lastParsedText = ""; // 強制清空，強制重新播放
             parseNewArticle(false);
         }
 
-        async function handleWordClickReader(element, word) {
-            speakText(word);
+        // 互動閱讀：單字查詢快取、並行查詢、逾時保護與單字卡
+        const READER_WORD_CACHE_KEY = 'annie_reader_word_cache_v2';
+        const READER_WORD_CACHE_TTL = 1000 * 60 * 60 * 24 * 30; // 30 天
+
+        function getReaderWordCache() {
+            try { return JSON.parse(localStorage.getItem(READER_WORD_CACHE_KEY) || '{}'); }
+            catch (e) { return {}; }
+        }
+        function setReaderWordCache(cache) {
+            try { localStorage.setItem(READER_WORD_CACHE_KEY, JSON.stringify(cache)); } catch (e) {}
+        }
+        function normalizeReaderWord(word) {
+            return (word || '').replace(/[’‘]/g, "'").replace(/^[^A-Za-z'-]+|[^A-Za-z'-]+$/g, '').toLowerCase();
+        }
+        function escapeHtmlReader(value) {
+            return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        function withTimeout(promise, ms = 6500) {
+            return Promise.race([
+                promise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+            ]);
+        }
+        async function fetchReaderWordData(word) {
+            const key = normalizeReaderWord(word);
+            const cache = getReaderWordCache();
+            const cached = cache[key];
+            if (cached && cached.timestamp && Date.now() - cached.timestamp < READER_WORD_CACHE_TTL) {
+                return { ...cached.data, fromCache: true };
+            }
+
+            const encoded = encodeURIComponent(word);
+            const dictPromise = fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encoded}`)
+                .then(async r => {
+                    if (!r.ok) throw new Error('dictionary');
+                    return r.json();
+                });
+            const zhPromise = fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encoded}`)
+                .then(async r => {
+                    if (!r.ok) throw new Error('translation');
+                    const d = await r.json();
+                    return d?.[0]?.map(seg => seg?.[0]).filter(Boolean).join('') || '';
+                });
+
+            // IPA 與中文翻譯同時查詢，不互相等待。
+            const [dictResult, zhResult] = await Promise.allSettled([
+                withTimeout(dictPromise),
+                withTimeout(zhPromise)
+            ]);
+
+            let ph = '', pos = '', def = '', zh = '';
+            if (dictResult.status === 'fulfilled') {
+                const data = dictResult.value;
+                const entries = Array.isArray(data) ? data : [];
+                for (const entry of entries) {
+                    if (!ph) ph = entry?.phonetics?.find(p => p?.text)?.text || '';
+                    const meaning = entry?.meanings?.find(m => m?.definitions?.length);
+                    if (meaning) {
+                        if (!pos) pos = meaning.partOfSpeech || '';
+                        if (!def) def = meaning.definitions?.[0]?.definition || '';
+                    }
+                    if (ph && pos && def) break;
+                }
+            }
+            if (zhResult.status === 'fulfilled') zh = zhResult.value || '';
+
+            if (!ph && !pos && !def && !zh) throw new Error('no-data');
+            const data = {
+                word,
+                ph: ph || '—',
+                pos: pos || '—',
+                def: def || '暫無英文解釋',
+                zh: zh || '暫無中文翻譯'
+            };
+            cache[key] = { timestamp: Date.now(), data };
+            setReaderWordCache(cache);
+            return { ...data, fromCache: false };
+        }
+
+        function positionReaderWordPopover(element) {
             const popover = document.getElementById('word-popover');
-            
-            // Loading state
-            popover.innerHTML = `
-                <div class="flex flex-col items-center justify-center p-6 gap-3">
-                    <div class="w-6 h-6 border-4 border-[#e28f83] border-t-transparent rounded-full animate-spin"></div>
-                    <div class="text-sm font-bold text-stone-500 clear-text">正在查詢 "${word}" ...</div>
-                </div>`;
-            popover.classList.remove('hidden');
-            
-            // Positioning
             const rect = element.getBoundingClientRect();
             const scrollY = window.scrollY || window.pageYOffset;
             const scrollX = window.scrollX || window.pageXOffset;
-            
+            const width = 320;
             let topPos = rect.bottom + scrollY + 10;
-            let leftPos = rect.left + scrollX - 100;
-            
+            let leftPos = rect.left + scrollX - 110;
             if (leftPos < 10) leftPos = 10;
-            if (leftPos + 288 > window.innerWidth) leftPos = window.innerWidth - 300;
-            
+            if (leftPos + width > window.innerWidth - 10) leftPos = Math.max(10, window.innerWidth - width - 10);
             popover.style.top = `${topPos}px`;
             popover.style.left = `${leftPos}px`;
+        }
+
+        function speakReaderWord(text, btn = null) {
+            const word = String(text || '').trim();
+            if (!word || !('speechSynthesis' in window) || !window.SpeechSynthesisUtterance) {
+                showToastReader('目前瀏覽器不支援單字朗讀，請使用 Chrome / Edge。', 'warning');
+                return;
+            }
+
+            const synth = window.speechSynthesis;
+            if (btn) {
+                btn.classList.add('opacity-60');
+                btn.setAttribute('aria-busy', 'true');
+            }
+
+            const resetButton = () => {
+                if (btn) {
+                    btn.classList.remove('opacity-60');
+                    btn.removeAttribute('aria-busy');
+                }
+            };
+
+            const speakNow = () => {
+                try {
+                    synth.cancel();
+                    synth.resume();
+
+                    const utterance = new SpeechSynthesisUtterance(word);
+                    utterance.lang = 'en-US';
+                    utterance.rate = 0.82;
+                    utterance.pitch = 1.0;
+                    utterance.volume = 1.0;
+
+                    const voices = synth.getVoices();
+                    const voice = voices.find(v => /^en-US$/i.test(v.lang) && /Google US English/i.test(v.name))
+                        || voices.find(v => /^en-US$/i.test(v.lang))
+                        || voices.find(v => /^en/i.test(v.lang));
+                    if (voice) utterance.voice = voice;
+
+                    utterance.onend = resetButton;
+                    utterance.oncancel = resetButton;
+                    utterance.onerror = (event) => {
+                        resetButton();
+                        if (event?.error !== 'canceled') {
+                            showToastReader('單字朗讀暫時失敗，請再按一次。', 'warning');
+                        }
+                    };
+
+                    synth.speak(utterance);
+                    // 某些 Chrome/Edge 環境在第一次呼叫時會把 speech queue 卡住，主動 resume 可解除。
+                    setTimeout(() => { try { synth.resume(); } catch (_) {} }, 120);
+                } catch (e) {
+                    resetButton();
+                    showToastReader('單字朗讀暫時失敗，請再按一次。', 'warning');
+                }
+            };
+
+            // voices 尚未初始化時，等 voiceschanged 後再播放；若事件沒有觸發，短延遲也會播放。
+            const voices = synth.getVoices();
+            if (voices.length > 0) {
+                speakNow();
+            } else {
+                let handled = false;
+                const onVoicesChanged = () => {
+                    if (handled) return;
+                    handled = true;
+                    synth.removeEventListener('voiceschanged', onVoicesChanged);
+                    speakNow();
+                };
+                synth.addEventListener('voiceschanged', onVoicesChanged);
+                setTimeout(() => {
+                    if (!handled) {
+                        handled = true;
+                        synth.removeEventListener('voiceschanged', onVoicesChanged);
+                        speakNow();
+                    }
+                }, 500);
+            }
+        }
+
+        function renderReaderWordCard(word, data) {
+            const popover = document.getElementById('word-popover');
+            const safeWord = escapeHtmlReader(word);
+            const safePh = escapeHtmlReader(data.ph);
+            const safeZh = escapeHtmlReader(data.zh);
+            const safePos = escapeHtmlReader(data.pos);
+            const safeDef = escapeHtmlReader(data.def);
+            const isSaved = savedVocabulary.some(v => v.word.toLowerCase() === word.toLowerCase());
+            const saveTitle = isSaved ? '移除單字本' : '加入單字本';
+            const saveIcon = isSaved ? '★' : '☆';
+            const saveClass = isSaved ? 'text-[#e28f83]' : 'text-stone-300';
+            const payload = encodeURIComponent(JSON.stringify({word, ph: data.ph, pos: data.pos, def: data.def}));
+
+            popover.innerHTML = `
+                <div class="p-1">
+                    <div class="flex justify-between items-start border-b-2 border-dashed border-[#e6ddcf] pb-3 mb-3">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-black text-[#bc675b] uppercase tracking-wider">📖 單字</span>
+                                <button type="button" data-reader-speak="${safeWord}" class="reader-word-speak text-[#bc675b] hover:scale-110 transition-transform text-lg" title="單字發音">🔊</button>
+                            </div>
+                            <h3 class="font-black text-2xl text-stone-800 tracking-wide clear-text break-all">${safeWord}</h3>
+                        </div>
+                        <button onclick="toggleVocabEncoded('${payload}')" class="${saveClass} hover:text-[#bc675b] transition text-3xl leading-none" title="${saveTitle}">${saveIcon}</button>
+                    </div>
+                    <div class="space-y-3 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
+                        <div>
+                            <p class="text-[10px] font-black text-stone-400 uppercase tracking-wider mb-1">IPA 國際音標</p>
+                            <p class="text-base font-bold text-[#8a6bb1] font-mono">${safePh}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-[#7dbf8c] uppercase tracking-wider mb-1">🇹🇼 中文翻譯</p>
+                            <p class="text-base font-black text-[#5a9e6e] leading-snug">${safeZh}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-stone-400 uppercase tracking-wider mb-1">詞性</p>
+                            <span class="inline-block text-xs font-black text-[#bc675b] bg-[#fbf8f2] px-2 py-1 rounded-md border border-[#eee5d5]">${safePos}</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-stone-400 uppercase tracking-wider mb-1">英文解釋</p>
+                            <p class="text-sm text-stone-700 leading-relaxed font-medium">${safeDef}</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t-2 border-[#f3ede2] flex flex-wrap justify-between items-center gap-2">
+                        <button type="button" data-reader-speak="${safeWord}" class="reader-word-speak text-xs font-black text-[#bc675b] bg-[#fdf2f0] px-3 py-2 rounded-xl border border-[#f5dbd7] hover:bg-[#f7e2de] transition">🔊 單字發音</button>
+                        <button type="button" data-reader-dict="${safeWord}" class="reader-word-dict text-xs font-bold text-[#e28f83] bg-white px-3 py-2 rounded-xl border border-[#e6ddcf] hover:bg-[#fdf2f0] transition">📖 完整字典</button>
+                    </div>
+                </div>`;
+
+            // 使用 addEventListener 綁定單字卡按鈕，避免 don't / I'm / it's 等含撇號單字造成 inline onclick 失效。
+            popover.querySelectorAll('.reader-word-speak').forEach(btn => {
+                btn.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const targetWord = btn.dataset.readerSpeak || word;
+                    speakReaderWord(targetWord, btn);
+                });
+            });
+            popover.querySelectorAll('.reader-word-dict').forEach(btn => {
+                btn.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openExternalDict(btn.dataset.readerDict || word);
+                });
+            });
+        }
+
+        function toggleVocabEncoded(payload) {
+            try {
+                const {word, ph, pos, def} = JSON.parse(decodeURIComponent(payload));
+                toggleVocab(word, ph, pos, def);
+            } catch (e) {}
+        }
+
+        async function handleWordClickReader(element, word) {
+            const clean = normalizeReaderWord(word);
+            if (!clean) return;
+            speakText(clean);
+            const popover = document.getElementById('word-popover');
+            popover.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-6 gap-3">
+                    <div class="text-3xl">📖</div>
+                    <div class="w-6 h-6 border-4 border-[#e28f83] border-t-transparent rounded-full animate-spin"></div>
+                    <div class="text-sm font-bold text-stone-500">正在查詢「${escapeHtmlReader(clean)}」...</div>
+                    <div class="text-[10px] text-stone-400">IPA 與中文翻譯同步查詢，最多等待 6.5 秒</div>
+                </div>`;
+            popover.classList.remove('hidden');
+            positionReaderWordPopover(element);
 
             try {
-                // Fetch dictionary data AND Chinese translation in parallel
-                const [dictRes, zhTrans] = await Promise.all([
-                    fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`),
-                    fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(word)}`)
-                        .then(r => r.json())
-                        .then(d => {
-                            // Google translate response: [[["翻譯","原文",...],...],...]
-                            return d?.[0]?.map(seg => seg?.[0]).filter(Boolean).join('') || '';
-                        })
-                        .catch(() => '')
-                ]);
-
-                let ph = '', pos = '', def = '無定義 (No definition found)';
-                
-                if(dictRes.ok) {
-                    const data = await dictRes.json();
-                    ph = data[0]?.phonetics?.find(p=>p.text)?.text || '';
-                    const mean = data[0]?.meanings[0];
-                    pos = mean?.partOfSpeech || 'n.';
-                    def = mean?.definitions[0]?.definition || '無定義';
-                } else {
-                    throw new Error();
-                }
-
-                const isSaved = savedVocabulary.some(v => v.word.toLowerCase() === word.toLowerCase());
-                const saveBtnHtml = isSaved 
-                    ? `<button onclick="toggleVocab('${word}', '${ph.replace(/'/g, "\\'")}', '${pos}', '${def.replace(/'/g, "\\'")}')" class="text-[#e28f83] hover:text-[#bc675b] transition text-2xl leading-none" title="移除單字">★</button>`
-                    : `<button onclick="toggleVocab('${word}', '${ph.replace(/'/g, "\\'")}', '${pos}', '${def.replace(/'/g, "\\'")}')" class="text-stone-300 hover:text-[#e28f83] transition text-2xl leading-none drop-shadow-sm" title="加入單字本">☆</button>`;
-
-                const zhBlock = zhTrans
-                    ? `<div class="mt-2 pt-2 border-t border-dashed border-[#e6ddcf]">
-                           <p class="text-[10px] font-bold text-[#7dbf8c] uppercase tracking-wider mb-1 clear-text">🇹🇼 中文</p>
-                           <p class="text-base font-black text-[#5a9e6e] leading-snug clear-text">${zhTrans}</p>
-                       </div>`
-                    : '';
-
-                popover.innerHTML = `
-                    <div class="flex justify-between items-start mb-2 border-b-2 border-dashed border-[#e6ddcf] pb-3">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="font-black text-xl text-stone-800 clear-text tracking-wide">${word}</h3>
-                                <button onclick="speakText('${word}')" class="text-lg hover:scale-110 transition-transform active:scale-95 text-[#bc675b]" title="朗讀">🔊</button>
-                            </div>
-                            <span class="text-xs text-stone-400 font-mono font-bold clear-text">${ph}</span>
-                        </div>
-                        <div class="mt-1">${saveBtnHtml}</div>
-                    </div>
-                    <div class="max-h-48 overflow-y-auto pr-2 custom-scrollbar my-3">
-                        <p class="text-[11px] font-bold text-[#bc675b] mb-1 uppercase tracking-wider clear-text bg-[#fbf8f2] inline-block px-2 py-0.5 rounded-md border border-[#eee5d5]">${pos}</p>
-                        <p class="text-sm text-stone-700 leading-relaxed clear-text font-medium mt-1.5">${def}</p>
-                        ${zhBlock}
-                    </div>
-                    <div class="mt-4 pt-3 border-t-2 border-[#f3ede2] flex justify-between items-center">
-                        <button onclick="openExternalDict('${word}')" class="text-xs font-bold text-[#e28f83] hover:text-[#bc675b] transition clear-text flex items-center gap-1.5 bg-[#fdf2f0] px-2.5 py-1.5 rounded-lg border border-[#f5dbd7]">
-                            <span class="text-sm">📖</span> 完整字典
-                        </button>
-                        <button onclick="document.getElementById('word-popover').classList.add('hidden')" class="bg-[#f3ede2] hover:bg-[#e6ddcf] text-stone-600 px-3 py-1.5 rounded-lg text-xs font-bold transition clear-text">關閉</button>
-                    </div>
-                `;
-            } catch(e) {
+                const data = await fetchReaderWordData(clean);
+                renderReaderWordCard(clean, data);
+                positionReaderWordPopover(element);
+            } catch (e) {
                 popover.innerHTML = `
                     <div class="p-2">
                         <div class="flex justify-between items-center mb-3 border-b-2 border-dashed border-[#e6ddcf] pb-2">
-                            <h3 class="font-black text-xl text-stone-800 clear-text">${word}</h3>
-                            <button onclick="document.getElementById('word-popover').classList.add('hidden')" class="text-stone-400 hover:text-stone-600 text-xl font-bold leading-none">×</button>
+                            <div><span class="text-[10px] font-black text-[#bc675b]">📖 單字</span><h3 class="font-black text-xl text-stone-800">${escapeHtmlReader(clean)}</h3></div>
+                            <button onclick="document.getElementById('word-popover').classList.add('hidden')" class="text-stone-400 hover:text-stone-600 text-xl font-bold">×</button>
                         </div>
-                        <p class="text-sm text-rose-500 font-bold text-center py-4 clear-text">找不到此單字的詳細資料</p>
+                        <p class="text-sm text-rose-500 font-bold text-center py-4">查詢逾時或暫時無法取得資料</p>
                         <div class="flex justify-center mt-2">
-                            <button onclick="openExternalDict('${word}')" class="text-xs font-bold text-[#e28f83] border-2 border-[#e28f83] rounded-xl px-4 py-2 hover:bg-[#fdf2f0] transition clear-text">前往外部字典查詢</button>
+                            <button onclick="openExternalDict(${JSON.stringify(clean)})" class="text-xs font-bold text-[#e28f83] border-2 border-[#e28f83] rounded-xl px-4 py-2 hover:bg-[#fdf2f0] transition">📖 完整字典</button>
                         </div>
                     </div>`;
             }
@@ -2848,98 +3204,142 @@
             });
         }
 
-        async function fetchTranslation(text) {
-            const source = document.getElementById('trans-source-select')?.value || 'google';
-            let finalTrans = "";
+        const READER_TRANSLATION_CACHE_KEY = 'annie_reader_sentence_translation_v1';
+        const READER_TRANSLATION_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
+        function getReaderTranslationCache() {
+            try { return JSON.parse(localStorage.getItem(READER_TRANSLATION_CACHE_KEY) || '{}'); }
+            catch (_) { return {}; }
+        }
+
+        function setReaderTranslationCache(cache) {
+            try { localStorage.setItem(READER_TRANSLATION_CACHE_KEY, JSON.stringify(cache)); } catch (_) {}
+        }
+
+        async function fetchWithTimeoutReader(url, options = {}, ms = 5000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), ms);
             try {
-                if (source === 'google') {
-                    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(text)}`;
-                    const res = await fetch(url);
-                    if (res.ok) {
-                        const data = await res.json();
-                        data[0].forEach(part => { if (part[0]) finalTrans += part[0]; });
-                    }
-                } else if (source === 'lingva') {
-                    const url = `https://lingva.ml/api/v1/en/zh_TW/${encodeURIComponent(text)}`;
-                    const res = await fetch(url);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.translation) finalTrans = data.translation;
-                    }
-                } else {
-                    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|zh-TW`;
-                    const res = await fetch(url);
-                    if (res.ok) {
-                        const data = await res.json();
-                        const rawTrans = data.responseData?.translatedText || '';
-                        if (/[\u4e00-\u9fff]/.test(rawTrans)) finalTrans = rawTrans;
-                    }
-                }
-            } catch (e) { console.warn("Primary translation source failed", e); }
-            
-            // Fallback to Google if the chosen one failed (and wasn't google)
-            if ((!finalTrans || !/[\u4e00-\u9fff]/.test(finalTrans)) && source !== 'google') {
-                try {
-                    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(text)}`;
-                    const res = await fetch(url);
-                    if (res.ok) {
-                        const data = await res.json();
-                        finalTrans = "";
-                        data[0].forEach(part => { if (part[0]) finalTrans += part[0]; });
-                    }
-                } catch (e) { console.error("Fallback Google Translate failed", e); }
+                return await fetch(url, { ...options, signal: controller.signal });
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        async function fetchGoogleReaderTranslation(text) {
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(text)}`;
+            const res = await fetchWithTimeoutReader(url, {}, 4500);
+            if (!res.ok) throw new Error('google-translation');
+            const data = await res.json();
+            const result = data?.[0]?.map(part => part?.[0]).filter(Boolean).join('') || '';
+            if (!result || !/[\u4e00-\u9fff]/.test(result)) throw new Error('empty-translation');
+            return result;
+        }
+
+        async function fetchMyMemoryReaderTranslation(text) {
+            const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|zh-TW`;
+            const res = await fetchWithTimeoutReader(url, {}, 4500);
+            if (!res.ok) throw new Error('mymemory-translation');
+            const data = await res.json();
+            const result = data?.responseData?.translatedText || '';
+            if (!result || !/[\u4e00-\u9fff]/.test(result)) throw new Error('empty-translation');
+            return result;
+        }
+
+        async function fetchTranslation(text) {
+            const cleanText = String(text || '').trim();
+            if (!cleanText) return '（沒有可翻譯的內容）';
+
+            const cache = getReaderTranslationCache();
+            const key = cleanText.toLowerCase();
+            const cached = cache[key];
+            if (cached?.timestamp && Date.now() - cached.timestamp < READER_TRANSLATION_CACHE_TTL && cached.translation) {
+                return cached.translation;
             }
 
-            if (!finalTrans || !/[\u4e00-\u9fff]/.test(finalTrans)) {
-                finalTrans = "（此句查無合適的中文翻譯，請嘗試切換翻譯來源）";
+            const source = document.getElementById('trans-source-select')?.value || 'google';
+            const translators = source === 'mymemory'
+                ? [fetchMyMemoryReaderTranslation, fetchGoogleReaderTranslation]
+                : [fetchGoogleReaderTranslation, fetchMyMemoryReaderTranslation];
+
+            // 第一來源失敗就快速切換備援，不再無限等待。
+            for (const translator of translators) {
+                try {
+                    const result = await translator(cleanText);
+                    cache[key] = { timestamp: Date.now(), translation: result };
+                    setReaderTranslationCache(cache);
+                    return result;
+                } catch (_) {}
             }
-            return finalTrans;
+
+            return '⚠️ 翻譯服務暫時無法連線，請稍後再試。';
+        }
+
+        async function fetchSelectionPhonetics(text) {
+            const words = [...new Set(text.match(/[a-zA-Z'-]+/g) || [])].slice(0, 8);
+            if (!words.length) return '';
+
+            const results = await Promise.allSettled(words.map(async w => {
+                const r = await fetchWithTimeoutReader(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(w.toLowerCase())}`, {}, 2500);
+                if (!r.ok) throw new Error('phonetic');
+                const d = await r.json();
+                return d?.[0]?.phonetic || d?.[0]?.phonetics?.find(p => p?.text)?.text || '';
+            }));
+
+            const parts = results
+                .map(r => r.status === 'fulfilled' ? String(r.value || '').replace(/\//g, '') : '')
+                .filter(Boolean);
+            return parts.length ? '/' + parts.join(' ') + '/' + (words.length > 8 ? ' ...' : '') : '';
         }
 
         async function openTranslationModal(text) {
-            document.getElementById('translation-modal').classList.remove('hidden');
-            document.getElementById('modal-original-text').innerText = text;
-            document.getElementById('modal-translation-loading').classList.remove('hidden');
-            document.getElementById('modal-translation-text').classList.add('hidden');
-            document.getElementById('modal-phonetic-text').classList.add('hidden');
-            
-            document.getElementById('modal-original-speak-btn').onclick = () => speakText(text);
-            document.getElementById('modal-speak-btn').onclick = () => speakText(text);
+            const modal = document.getElementById('translation-modal');
+            const original = document.getElementById('modal-original-text');
+            const loading = document.getElementById('modal-translation-loading');
+            const resultBox = document.getElementById('modal-translation-text');
+            const phoneticBox = document.getElementById('modal-phonetic-text');
+            if (!modal || !original || !loading || !resultBox) return;
 
-            // 1. Fetch Phonetics (Optional, for up to first 8 words to avoid slow down)
-            try {
-                const words = text.match(/[a-zA-Z'-]+/g) || [];
-                const phoneticParts = [];
-                for (const w of words.slice(0, 8)) {
-                    try {
-                        const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${w.toLowerCase()}`);
-                        if (r.ok) {
-                            const d = await r.json();
-                            const ph = d[0]?.phonetic || d[0]?.phonetics?.find(p=>p.text)?.text || '';
-                            if (ph) phoneticParts.push(ph.replace(/\//g,''));
-                        }
-                    } catch(_) {}
-                }
-                if (phoneticParts.length > 0) {
-                    const phoneticText = '/' + phoneticParts.join(' ') + '/' + (words.length > 8 ? ' ...' : '');
-                    document.getElementById('modal-phonetic-text').innerText = phoneticText;
-                    document.getElementById('modal-phonetic-text').classList.remove('hidden');
-                }
-            } catch(e) {}
+            const cleanText = String(text || '').trim();
+            if (!cleanText) return;
 
-            // 2. Fetch Real Translation
+            modal.classList.remove('hidden');
+            original.innerText = cleanText;
+            loading.classList.remove('hidden');
+            resultBox.classList.add('hidden');
+            resultBox.innerText = '';
+            phoneticBox.classList.add('hidden');
+            phoneticBox.innerText = '';
+
+            document.getElementById('modal-original-speak-btn').onclick = () => speakText(cleanText);
+            document.getElementById('modal-speak-btn').onclick = () => speakText(cleanText);
+
+            // 翻譯與音標同時進行；音標是附加資訊，不再阻塞中文翻譯。
+            const translationPromise = fetchTranslation(cleanText);
+            const phoneticPromise = fetchSelectionPhonetics(cleanText);
+
             try {
-                const finalTrans = await fetchTranslation(text);
-                document.getElementById('modal-translation-loading').classList.add('hidden');
-                document.getElementById('modal-translation-text').innerText = finalTrans;
-                document.getElementById('modal-translation-text').classList.remove('hidden');
+                const finalTrans = await translationPromise;
+                // 若使用者已經換了另一段選取文字，不覆蓋最新結果。
+                if (document.getElementById('modal-original-text')?.innerText === cleanText) {
+                    loading.classList.add('hidden');
+                    resultBox.innerText = finalTrans;
+                    resultBox.classList.remove('hidden');
+                }
             } catch (err) {
-                console.error("Translation Error:", err);
-                document.getElementById('modal-translation-loading').classList.add('hidden');
-                document.getElementById('modal-translation-text').innerText = "⚠️ 翻譯連線失敗，請檢查網路狀態或稍後再試。";
-                document.getElementById('modal-translation-text').classList.remove('hidden');
+                console.error('Translation Error:', err);
+                loading.classList.add('hidden');
+                resultBox.innerText = '⚠️ 翻譯服務暫時無法連線，請稍後再試。';
+                resultBox.classList.remove('hidden');
             }
+
+            try {
+                const phoneticText = await phoneticPromise;
+                if (phoneticText && document.getElementById('modal-original-text')?.innerText === cleanText) {
+                    phoneticBox.innerText = phoneticText;
+                    phoneticBox.classList.remove('hidden');
+                }
+            } catch (_) {}
         }
 
         function closeTranslationModal() {
@@ -2949,82 +3349,172 @@
 
         // ==========================================================================
         // NEW: FULL SENTENCE PHONETICS CONVERTER
+        // 修正版：所有單字並行查詢、每個請求逾時、中文翻譯與音標同步進行。
         // ==========================================================================
+        let phoneticConversionRequestId = 0;
+        const READER_SENTENCE_PHONETIC_TTL = 1000 * 60 * 60 * 24 * 30; // 30 天
+        const READER_SENTENCE_PHONETIC_CACHE_KEY = 'annie_reader_sentence_phonetic_v2';
+
+        function getReaderSentencePhoneticCache() {
+            try { return JSON.parse(localStorage.getItem(READER_SENTENCE_PHONETIC_CACHE_KEY) || '{}'); }
+            catch (_) { return {}; }
+        }
+
+        function setReaderSentencePhoneticCache(cache) {
+            try { localStorage.setItem(READER_SENTENCE_PHONETIC_CACHE_KEY, JSON.stringify(cache)); }
+            catch (_) {}
+        }
+
+        async function fetchSentenceWordPhonetic(word) {
+            const cleanWord = String(word || '').trim().toLowerCase();
+            if (!cleanWord) return '';
+
+            const cache = getReaderSentencePhoneticCache();
+            const cached = cache[cleanWord];
+            if (cached?.timestamp && Date.now() - cached.timestamp < READER_SENTENCE_PHONETIC_TTL && cached.phonetic) {
+                return cached.phonetic;
+            }
+
+            try {
+                const r = await fetchWithTimeoutReader(
+                    `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`,
+                    {},
+                    2200
+                );
+                if (!r.ok) throw new Error('dictionary');
+                const d = await r.json();
+                const ph = d?.[0]?.phonetic || d?.[0]?.phonetics?.find(p => p?.text)?.text || '';
+                if (ph) {
+                    cache[cleanWord] = { timestamp: Date.now(), phonetic: ph };
+                    setReaderSentencePhoneticCache(cache);
+                    return ph;
+                }
+            } catch (_) {}
+
+            return '';
+        }
+
+        async function mapWithConcurrency(items, worker, limit = 6) {
+            const results = new Array(items.length);
+            let cursor = 0;
+            async function runner() {
+                while (true) {
+                    const index = cursor++;
+                    if (index >= items.length) return;
+                    try {
+                        results[index] = await worker(items[index], index);
+                    } catch (_) {
+                        results[index] = '';
+                    }
+                }
+            }
+            const runners = Array.from({ length: Math.min(limit, items.length) }, () => runner());
+            await Promise.all(runners);
+            return results;
+        }
+
+        async function fetchFullSentencePhonetic(sentence) {
+            // 不再一次對所有單字發出大量 API 請求，避免瀏覽器連線限制或 API rate-limit
+            // 造成整個工具長時間卡住。最多同時處理 6 個單字。
+            const words = sentence.match(/[a-zA-Z]+(?:['’][a-zA-Z]+)*/g) || [];
+            if (!words.length) return '（找不到可轉換的英文單字）';
+
+            const uniqueWords = [...new Set(words.map(w => w.toLowerCase()))];
+            const phoneticMap = {};
+            const uniqueResults = await Promise.race([
+                mapWithConcurrency(uniqueWords, async word => {
+                    return await fetchSentenceWordPhonetic(word);
+                }, 6),
+                new Promise(resolve => setTimeout(() => resolve(uniqueWords.map(() => '')), 6500))
+            ]);
+
+            uniqueWords.forEach((word, i) => {
+                phoneticMap[word] = uniqueResults[i] || '';
+            });
+
+            // 保留原句單字順序；查不到的單字只做可辨識的文字 fallback，
+            // 不會因單一單字查詢失敗而阻塞整句結果。
+            const parts = words.map(word => phoneticMap[word.toLowerCase()]
+                ? phoneticMap[word.toLowerCase()].replace(/\//g, '')
+                : word.toLowerCase()
+            );
+
+            return '/' + parts.join(' ') + '/';
+        }
+
         async function convertSentenceToPhonetics() {
-            const sentence = document.getElementById('phonetic-input-reader').value.trim();
+            const input = document.getElementById('phonetic-input-reader');
+            const sentence = input?.value.trim() || '';
             if (!sentence) {
-                showToastReader("請先輸入要轉換音標的句子！", "warning");
+                showToastReader('請先輸入要轉換音標的句子！', 'warning');
                 return;
             }
 
+            const requestId = ++phoneticConversionRequestId;
             const outputPlaceholder = document.getElementById('phonetic-output-container');
             const resultSection = document.getElementById('phonetic-result-section');
-            
+            const origBox = document.getElementById('phonetic-orig-text');
+            const ipaBox = document.getElementById('phonetic-ipa-text');
+            const transBox = document.getElementById('phonetic-trans-text');
+            const speakBtn = document.getElementById('phonetic-speak-btn');
+
             outputPlaceholder.innerHTML = `
                 <div class="flex flex-col items-center justify-center h-full text-center py-10">
                     <svg class="animate-spin h-8 w-8 text-[#e28f83] mb-3" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <p class="text-sm text-stone-600 font-bold clear-text">正在逐字查詢音標...</p>
+                    <p class="text-sm text-stone-600 font-bold clear-text">正在同步取得美式音標與中文翻譯…</p>
+                    <p class="text-xs text-stone-400 mt-1 clear-text">單字查詢逾時會自動略過，不會一直卡住</p>
                 </div>
             `;
-            outputPlaceholder.classList.remove('opacity-40');
-            outputPlaceholder.classList.remove('hidden');
+            outputPlaceholder.classList.remove('opacity-40', 'hidden');
             resultSection.classList.add('hidden');
 
-            try {
-                const words = sentence.match(/[a-zA-Z'-]+/g) || [];
-                const phoneticParts = [];
-                
-                for (const w of words) {
-                    try {
-                        const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${w.toLowerCase()}`);
-                        if (r.ok) {
-                            const d = await r.json();
-                            const ph = d[0]?.phonetic || d[0]?.phonetics?.find(p=>p.text)?.text || '';
-                            phoneticParts.push(ph ? ph.replace(/\//g,'') : w.toLowerCase());
-                        } else {
-                            phoneticParts.push(w.toLowerCase());
-                        }
-                    } catch(_) {
-                        phoneticParts.push(w.toLowerCase());
-                    }
-                }
+            // 音標與翻譯完全並行，任何一邊失敗都不阻塞另一邊。
+            const phoneticPromise = fetchFullSentencePhonetic(sentence);
+            const translationPromise = fetchTranslation(sentence);
 
-                const phonetic = '/' + phoneticParts.join(' ') + '/';
+            const [phoneticResult, translationResult] = await Promise.allSettled([
+                Promise.race([
+                    phoneticPromise,
+                    new Promise(resolve => setTimeout(() => resolve('⚠️ 音標查詢逾時，已以可用單字結果顯示。'), 7000))
+                ]),
+                Promise.race([
+                    translationPromise,
+                    new Promise(resolve => setTimeout(() => resolve('⚠️ 中文翻譯查詢逾時，請稍後再試。'), 7500))
+                ])
+            ]);
 
-                document.getElementById('phonetic-orig-text').textContent = sentence;
-                document.getElementById('phonetic-ipa-text').textContent = phonetic;
-                
-                // Fetch translation for full sentence block using API too
-                let transTextForFull = '（取得翻譯中...）';
-                document.getElementById('phonetic-trans-text').textContent = transTextForFull;
-                
-                try {
-                   transTextForFull = await fetchTranslation(sentence);
-                } catch(e) {
-                    transTextForFull = "（翻譯服務連線失敗）";
-                }
+            // 使用者已再次按轉換或輸入新內容時，舊請求直接停止更新畫面。
+            if (requestId !== phoneticConversionRequestId) return;
 
-                document.getElementById('phonetic-trans-text').textContent = transTextForFull;
+            const phoneticText = phoneticResult.status === 'fulfilled'
+                ? phoneticResult.value
+                : '⚠️ 音標服務暫時無法連線，請稍後再試。';
+            const translationText = translationResult.status === 'fulfilled'
+                ? translationResult.value
+                : '⚠️ 翻譯服務暫時無法連線，請稍後再試。';
 
-                const speakBtn = document.getElementById('phonetic-speak-btn');
+            if (origBox) origBox.textContent = sentence;
+            if (ipaBox) ipaBox.textContent = phoneticText;
+            if (transBox) transBox.textContent = translationText;
+
+            if (speakBtn) {
                 speakBtn.onclick = () => speakText(sentence);
+            }
 
-                outputPlaceholder.classList.add('hidden');
-                resultSection.classList.remove('hidden');
-                showToastReader("逐字音標查詢完成！", "success");
-            } catch (err) {
-                console.error(err);
-                outputPlaceholder.innerHTML = `
-                    <div class="text-center py-6 text-rose-600 max-w-sm mx-auto h-full flex flex-col justify-center items-center">
-                        <span class="text-4xl block mb-2">🎀💦</span>
-                        <p class="font-bold clear-text">查詢失敗</p>
-                        <p class="text-xs text-stone-500 mt-1 leading-relaxed clear-text">${err.message}</p>
-                        <button onclick="convertSentenceToPhonetics()" class="mt-4 bg-[#fbece9] text-[#bc675b] font-bold px-4 py-2 rounded-xl border border-[#ebd2ce] hover:bg-[#e28f83] hover:text-white transition text-xs clear-text">重新嘗試</button>
-                    </div>
-                `;
+            outputPlaceholder.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+
+            const phoneticOk = phoneticResult.status === 'fulfilled';
+            const translationOk = translationResult.status === 'fulfilled' && !String(translationText).startsWith('⚠️');
+            if (phoneticOk && translationOk) {
+                showToastReader('整句音標與中文翻譯完成！', 'success');
+            } else if (phoneticOk || translationOk) {
+                showToastReader('已完成可取得的內容，部分服務暫時無法連線。', 'info');
+            } else {
+                showToastReader('音標與翻譯服務目前無法連線，請稍後再試。', 'warning');
             }
         }
 
@@ -3137,13 +3627,80 @@
             });
         }
 
+        // Daily English: one deterministic sentence per day + manual "換一句".
+        const TODAY_ENGLISH_SENTENCES = [
+            { en: 'Small steps every day can change my life.', zh: '每天一小步，也能改變我的人生。' },
+            { en: 'I can learn something new every single day.', zh: '我每天都可以學會新的事物。' },
+            { en: 'I do not need to be perfect to make progress.', zh: '我不需要完美，依然可以持續進步。' },
+            { en: 'Today is a fresh chance to become a little better.', zh: '今天是讓自己變得更好一點的新機會。' },
+            { en: 'I believe that small habits create big results.', zh: '我相信小習慣會創造大成果。' },
+            { en: 'I am proud of every step I take.', zh: '我為自己走出的每一步感到驕傲。' },
+            { en: 'I have the courage to keep going.', zh: '我有勇氣繼續向前。' },
+            { en: 'English becomes easier when I practice a little every day.', zh: '當我每天練習一點，英文會變得越來越容易。' },
+            { en: 'I give myself permission to learn at my own pace.', zh: '我允許自己按照自己的步調學習。' },
+            { en: 'Every new word brings me closer to my goal.', zh: '每學會一個新單字，都讓我更接近目標。' },
+            { en: 'I can speak English with confidence and calm.', zh: '我可以自信又從容地說英文。' },
+            { en: 'My daily practice is building my future self.', zh: '我每天的練習正在打造未來的自己。' },
+            { en: 'I choose progress over perfection.', zh: '我選擇進步，而不是追求完美。' },
+            { en: 'I am becoming more comfortable with English every day.', zh: '我每天都變得更自在地使用英文。' },
+            { en: 'A few focused minutes can make a meaningful difference.', zh: '幾分鐘專注的練習，就能帶來有意義的改變。' },
+            { en: 'I enjoy learning because every lesson helps me grow.', zh: '我享受學習，因為每一課都幫助我成長。' },
+            { en: 'I trust myself to keep learning, one day at a time.', zh: '我相信自己可以一天一天持續學習。' },
+            { en: 'My English journey starts with one sentence today.', zh: '我的英文旅程，就從今天的一句英文開始。' },
+            { en: 'I am creating a life filled with learning and possibility.', zh: '我正在創造一個充滿學習與可能性的生活。' },
+            { en: 'I make time for the things that matter to me.', zh: '我會為對我重要的事情留出時間。' }
+        ];
+        const TODAY_ENGLISH_STORAGE = 'annieEnglishHubDailyEnglishV21';
+
+        function getTodayEnglishState() {
+            const today = localDateKey();
+            let state = JSON.parse(localStorage.getItem(TODAY_ENGLISH_STORAGE) || '{}');
+            if (state.date !== today || !Number.isInteger(state.index)) {
+                const dayNumber = Math.floor(new Date(today + 'T00:00:00').getTime() / 86400000);
+                state = { date: today, index: ((dayNumber % TODAY_ENGLISH_SENTENCES.length) + TODAY_ENGLISH_SENTENCES.length) % TODAY_ENGLISH_SENTENCES.length };
+                localStorage.setItem(TODAY_ENGLISH_STORAGE, JSON.stringify(state));
+            }
+            return state;
+        }
+
+        function renderTodayEnglish() {
+            const state = getTodayEnglishState();
+            const sentence = TODAY_ENGLISH_SENTENCES[state.index];
+            const en = document.getElementById('today-english-sentence');
+            const zh = document.getElementById('today-english-translation');
+            if (en) en.textContent = `“${sentence.en}”`;
+            if (zh) zh.textContent = sentence.zh;
+        }
+
+        function changeTodaySentence() {
+            const state = getTodayEnglishState();
+            let nextIndex = state.index;
+            if (TODAY_ENGLISH_SENTENCES.length > 1) {
+                while (nextIndex === state.index) nextIndex = Math.floor(Math.random() * TODAY_ENGLISH_SENTENCES.length);
+            }
+            state.index = nextIndex;
+            localStorage.setItem(TODAY_ENGLISH_STORAGE, JSON.stringify(state));
+            renderTodayEnglish();
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+        }
+
         function speakTodaySentence() {
-            const text = 'Small steps every day can change my life.';
+            const state = getTodayEnglishState();
+            const text = TODAY_ENGLISH_SENTENCES[state.index].en;
             if (!window.speechSynthesis) return;
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(text);
             u.lang = 'en-US'; u.rate = 0.88;
             window.speechSynthesis.speak(u);
+        }
+
+        function initCrystalTopButton() {
+            const btn = document.getElementById('crystal-top-btn');
+            if (!btn) return;
+            const update = () => btn.classList.toggle('show', (window.scrollY || window.pageYOffset) > 260);
+            window.addEventListener('scroll', update, { passive: true });
+            btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+            update();
         }
 
         // ==========================================================================
@@ -3152,6 +3709,8 @@
         window.addEventListener('DOMContentLoaded', () => {
             // Setup Global Tabs
             switchMainTab('today');
+            renderTodayEnglish();
+            initCrystalTopButton();
             updateTodayDashboard();
 
             // Init Habits
